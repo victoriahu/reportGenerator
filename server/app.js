@@ -22,42 +22,28 @@ app.post('/', (req, res) => {
     // res.send(req.body.content);
 
     const items = JSON.parse(req.body.content);
-const replacer = (key, value) => value === null ? '' : value // specify how you want to handle null values here
-const header = Object.keys(items[0])
-let csv = items.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(','))
-csv.unshift(header.join(','))
-csv = csv.join('\r\n')
+    const replacer = (key, value) => value === null ? '' : value // specify how you want to handle null values here
+    const header = Object.keys(items[0])
+    let csv = items.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(','))
+    csv.unshift(header.join(','))
+    csv = csv.join('\r\n')
 
-    // function convertToCSV(objArray) {
-    //     var array = JSON.parse(objArray);
-    //     var str = '';
-    //     var headers = Object.keys(objArray[0]);
+    const readFile = util.promisify(fs.readFile);
+    const writeFile = util.promisify(fs.writeFile);
 
-    //     for (var i = 0; i < array.length; i++) {
-    //         var line = '';
-    //         for (var index in array[i]) {
-                
-    //             line += array[i][index];
-    //             line += ','
-    //         }
-
-    //         str += line + '\r\n';
-    //     }
-
-    //     return str;
-    // }
-    // var csv = convertToCSV(items);
-
-// res.send(csv);
-    const readFile = util.promisify(fs.readFile)
-
-
-    return (readFile(path.join(__dirname, './../client/index.html')))
+    return (writeFile(path.join(__dirname, './../client/results.csv'),csv,(err) => {
+        if (err) throw err;
+        console.log("the file has been saved!");
+    }))
+        .then(() => {
+            return readFile(path.join(__dirname, './../client/index.html'))
+        })
+    // return (readFile(path.join(__dirname, './../client/index.html')))
         .then(fileContents => {
             console.log(fileContents.toString());
             var stringFileContents = fileContents.toString();
             // res.send(fileContents.toString());
-            return stringFileContents.replace("CSV will return here!", csv);
+            return stringFileContents.replace("CSV contents will show up here!", csv);
         })
         .then(newFileContents => {
             console.log(newFileContents);
@@ -71,3 +57,4 @@ csv = csv.join('\r\n')
 
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+
