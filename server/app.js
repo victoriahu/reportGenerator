@@ -5,12 +5,15 @@ const path = require('path');
 const bodyParser = require('body-parser')
 const fs = require('fs');
 const util = require('util');
+const fileUpload = require('express-fileupload');
 
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: false
   }));
+
+app.use(fileUpload());
 
 app.use(express.static(path.join(__dirname, './../client')))
 
@@ -20,8 +23,9 @@ app.get('/', (req, res) => {
 
 app.post('/', (req, res) => {
     // res.send(req.body.content);
+    console.log(req.files.content.data.toString());
 
-    const items = JSON.parse(req.body.content);
+    const items = JSON.parse(req.files.content.data.toString());
     const replacer = (key, value) => value === null ? '' : value // specify how you want to handle null values here
     const header = Object.keys(items[0])
     let csv = items.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(','))
